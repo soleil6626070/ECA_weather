@@ -1,21 +1,8 @@
 #ECA weather
 # notes:
-# - keep up with visualising, its fun
-# - see how we can bend features
-# - calculate the logs and compare done
-
-# - k clustering (simple plots first)
-
 # - try to find humidity
-
-# lag data, look at everything, see how it changes.
-# principle component analysis
-
-# ok new to do list
-# add principle component analysis
 # format output
 # notes
-# create graph comparing different models
 # 
 # Data from the European Climate Assessment & Dataset (ECA&D).
 # Permision to use data granted as long as following source is acknowledged:
@@ -34,13 +21,15 @@ import seaborn as sns
 from sklearn.impute import SimpleImputer
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.preprocessing import LabelEncoder
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from xgboost import XGBRegressor
-from sklearn.cluster import KMeans
 
 # data: https://www.ecad.eu/dailydata/predefinedseries.php#
 file = 'C://Users//aidan//Documents//Physics//VScode//weather//ECA_london_weather_heathrow.csv'
@@ -85,23 +74,13 @@ Features = X2.columns.tolist()
 # Mutual Information function
 def calc_MI(X, y):
     MI_scores = mutual_info_regression(X, y, discrete_features='auto', random_state=0)
-    MI_scores = pd.Series(MI_scores, index=X2.columns)
+    MI_scores = pd.Series(MI_scores, index=X.columns)
     MI_scores = MI_scores.sort_values(ascending=False)
     return MI_scores
 
 MI_scores = calc_MI(X2, y)
 print(MI_scores)
 
-'''
-global_radiation    1.071160
-cloud_cover         0.452849
-max_temp            0.158522
-mean_temp           0.131358
-precipitation       0.087221
-pressure            0.046052
-min_temp            0.035356
-snow_depth          0.012550
-'''
 # Thoughts:
 
 # The pressure seems really low, given that high/low pressure systems affect sunshine
@@ -115,6 +94,7 @@ snow_depth          0.012550
 # thats whats blocking the sun..
 
 # Create Lag Feature --------------------------------------------------------------------
+
 # Use the previous days' sunshine to predict current sunshine
 X2['sunshine_lag_1'] = y.shift(1)
 X2['sunshine_lag_2'] = y.shift(2)
@@ -303,10 +283,44 @@ for feature in Features:
 # it is split using the K_means function?
 
 # KMeans Clustering
-X5 = X2.copy() # do this for X4 instead
-kmeans = KMeans(n_clusters=4)
+X5 = X2.copy()
+kmeans = KMeans(n_clusters=4, random_state=0)
 X5['Cluster'] = kmeans.fit_predict(X5)
 X5['Cluster'] = X5['Cluster'].astype('category')
+X5 = pd.get_dummies(X5, columns=['Cluster'])
+
+# Principle Component Analysis
+X6 = X2.copy()
+
+# Choose features to analyse with PCA
+PCA_features = ['global_radiation', 'cloud_cover', 'mean_temp', 'pressure']
+X6 = X6.loc[:, PCA_features]
+# pressure component is low MI but I'm including it anyway to see if PCA will uncover
+# its usefullness
+
+# Standardise the data
+standardise = StandardScaler()
+X6 = standardise.fit_transform(X6)
+mean = X6.mean(axis=0)
+std = X6.std(axis=0)
+print('mean:', mean)
+print('std:', std)
+
+# Apply PCA
+pca = PCA()
+X_pca = pca.fit_transform(X6)
+
+# Convert to DF
+component_names = [f'PC{i+1}' for i in range(X_pca.shape[1])]
+X_pca = pd.DataFrame(X_pca, columns= component_names)
+
+# MI
+MI_scores = calc_MI(X_pca, y)
+print(MI_scores)
+
+X6 = X3.copy()
+X6['PC1'] = X_pca['PC1']
+print(X6.info())
 
 # Model Building -------------------------------------------------------------------------
 
@@ -341,8 +355,13 @@ def XGB_score(X,y):
 
 # Results DataFrame
 mae_data = []
+feature_list = ['Without Seasons', 
+                'With Seasons', 
+                'With Seasons * Features', 
+                'With KMeans Clusters',
+                'With Seasons and PCA']
 # iterating through x and feature simultaneously to build df whilst calculating MAE
-for x, feature in zip([X2, X3, X4], ['Without Seasons', 'With Seasons', 'With Seasons * Features']):
+for x, feature in zip([X2, X3, X4, X5, X6], feature_list):
     forest_val = RFR_score(x, y)
     mae_data.append({'Feature': feature, 'Model': 'Random Forest', 'MAE': forest_val})
     print(f'The MAE for the Forest model {feature} is {forest_val:.3f}')
@@ -363,12 +382,16 @@ sns.barplot(data= mae_df,
             )
 plt.title('erm')
 plt.xlabel('Feature')
-plt.ylabel('MAE')
+plt.ylabel('MAE (+/- Hrs of Sunshine)')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
                   
-
-# kmeans clustering scores almost identically to the model without any clustering
-# perhaps I'm not implimenting it correctly
+# Thoughts:
+# Kmeans clustering scores almost identically to the model without any clustering
+# It doesnt capture any of the relevent structures in the data, I've tried it with 
+# lots of different n_clusters, it gets worse with more clusters. (Overfitting).
+# Possible Futher Work:
+# try a different clustering technique, like a gaussian model. I found some 'Gaussian
+# Mixture Models' (GMM) online, this might do a better job.
