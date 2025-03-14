@@ -1,8 +1,8 @@
 This code uses daily weather data at London Heathrow to build and compare a linear regression model against a gradient boosting model to predict the daily hours of sunshine. 
 
 This code can be broken down into different sections:
-1. Cleaning the data and imputing missing values
-2. Visualising the data with the Matplotlib and Seaborn libraries
+1. Cleaning the data and imputing missing values.
+2. Visualising the data with the Matplotlib and Seaborn libraries.
 3. Creating new features to see how the machine learning models would react to them.
 4. Building the ML models, applying them to the tweaked datasets & finally comparing them.
 
