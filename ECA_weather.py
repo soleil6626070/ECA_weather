@@ -36,6 +36,7 @@ from sklearn.metrics import mean_absolute_error
 from xgboost import XGBRegressor
 
 # data: https://www.ecad.eu/dailydata/predefinedseries.php#
+# Change this to suit your filepath
 file = 'C://Users//aidan//Documents//Physics//VScode//weather//ECA_london_weather_heathrow.csv'
 df = pd.read_csv(file)
 X = df.copy()
