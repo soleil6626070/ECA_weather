@@ -36,7 +36,6 @@ from sklearn.metrics import mean_absolute_error
 from xgboost import XGBRegressor
 
 # data: https://www.ecad.eu/dailydata/predefinedseries.php#
-# Change this to suit your filepath
 file = 'C://Users//aidan//Documents//Physics//VScode//weather//ECA_london_weather_heathrow.csv'
 df = pd.read_csv(file)
 X = df.copy()
@@ -49,24 +48,40 @@ X = df.copy()
 #print(X.isnull().sum())
 # a little less than 10% of the snow_depth data is missing
 
-#(X['snow_depth']==0).sum()
+#print((X['snow_depth']==0).sum())
 # little less than 90% of the time, it doesnt snow
 
-# it would be cool if i could impute NaN to zero in spirng, summer and autmumn
-# and replace NaN with the non-zero mean in Winter. 
-# would that be data-ethical?
+# I could impute missing values of snow_depth to zero in spirng, summer and autmumn
+# and replace NaN with the previous days value in winter.
+
 
 # Processing ----------------------------------------------------------------------------
+
 # remove rows with missing target
 X.dropna(axis=0, subset=['sunshine'], inplace=True)
 # set target
 y = X.pop('sunshine')
 #print(X.info())
 
-# Imputer
+# Snow depth imputing -------------------------------------------------------------------
+X['date_parsed'] = pd.to_datetime(X['date'], format='%Y%m%d')
+
+month = X.date_parsed.dt.month
+day = X.date_parsed.dt.day
+
+# Backfill winter months, fill to zero the rest of the year
+winter_mask = ((month==12) & (day >= 21) | (month==1) | (month==2) | (month==3) & (day <= 20))
+X.loc[winter_mask, 'snow_depth'] = X.loc[winter_mask, 'snow_depth'].bfill(axis=0, limit=1).fillna(0)
+X.loc[~winter_mask, 'snow_depth'] = X.loc[~winter_mask, 'snow_depth'].fillna(0)
+
+#print(X.isnull().sum())    snow_depth missing values successfully replaced
+X.drop(columns=['date_parsed'], inplace=True)
+
+# Imputer -------------------------------------------------------------------------------
 impute = SimpleImputer(strategy='mean')
 X2 = pd.DataFrame(impute.fit_transform(X), columns=X.columns)
 #print(X2.head())
+#print(X2.isnull().sum())
 
 # Identify High-Potential Features ------------------------------------------------------
 
@@ -132,6 +147,7 @@ def get_season(date):
         return 'Winter'
 
 X3['Season'] = X3['date_parsed'].apply(get_season)
+
 
 # Clean up columns and index
 #X3 = X3.set_index('date')
@@ -205,15 +221,15 @@ g.map_dataframe(sns.boxenplot,
     palette = 'pastel',
     )
 
-g.set_titles("{col_name}")
-g.set_axis_labels("Cloud Cover (Hrs)", "Sunshine (Hrs)")
-g.fig.suptitle("Cloud Cover vs Sunshine by Season")
+g.set_titles("{col_name}", fontsize=16)
+g.set_axis_labels("Cloud Cover (Hrs)", "Sunshine (Hrs)", fontsize=16)
+g.fig.suptitle("Cloud Cover vs Sunshine by Season", fontsize=18)
 plt.tight_layout()
 plt.subplots_adjust(bottom=0.2)
-plt.figtext(0.5, 0.05, "These plots are great as they identified data corruption in the dataset that I had missed. "
-                    "There are 19 rows in the dataset with the same abnormal value for cloud cover. "
+plt.figtext(0.5, 0.05, "These plots are great as they identified data corruption in the dataset that I had missed. \n"
+                    "There are 19 rows in the dataset with the same abnormal value for cloud cover. \n"
                     "These could be floating point precision errors.", 
-                    ha="center", fontsize=12, fontstyle="italic", wrap=True)
+                    ha="center", fontsize=16, fontstyle="italic", wrap=True)
 plt.gcf().set_facecolor('#D3D3D3')
 plt.show()
 
@@ -458,13 +474,15 @@ for x, feature in zip([X2, X3, X4, X5, X6, X7], feature_list):
     forest_val, rfr_FI = RFR_score(x, y)
     mae_data.append({'Feature': feature, 'Model': 'Random Forest', 'MAE': forest_val})
     print(f'The MAE for the Forest model {feature} is {forest_val:.3f}')
-    print('with feature importances: ', rfr_FI)
+    # uncomment for feature importance
+    #print('with feature importances: ', rfr_FI)
     print('')
 
     xgb_val, xgbr_FI = XGB_score(x, y)
     mae_data.append({'Feature': feature, 'Model': 'XGBoost', 'MAE': xgb_val})
     print(f'The MAE for the XGBoost model {feature} is {xgb_val:.3f}')
-    print('with feature importances: ', xgbr_FI)
+    # uncomment for feature importance
+    #print('with feature importances: ', xgbr_FI)
     print('')
     print('')
 
