@@ -5,7 +5,7 @@ They contain the temporal leakage bugs. These are to be fixed with cv_score
 with TimeSeriesSplit. Keeping them to compare with fix.
 """
 
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split, TimeSeriesSplit
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from xgboost import XGBRegressor
@@ -52,3 +52,19 @@ def XGB_score(X, y):
     # Getting feature importance
     xgbr_FI = xgbr_model.feature_importances_
     return mae, xgbr_FI
+
+
+# Time aware CV score. Takes any sklearn estimator or Pipeline.
+# If a Pipeline is passed, every transformer in it (imputer, scaler, PCA, ...)
+# is re-fit per fold inside cross_val_score, so preprocessing never sees the
+# test rows during training. TimeSeriesSplit replaces KFold so we only ever
+# train on the past and test on the future.
+def cv_score(model, X, y, n_splits=5):
+    tscv = TimeSeriesSplit(n_splits=n_splits)
+    fold_maes = -1 * cross_val_score(model,
+                                     X,
+                                     y,
+                                     cv=tscv,
+                                     scoring='neg_mean_absolute_error')
+    mae = fold_maes.mean()
+    return mae, fold_maes
