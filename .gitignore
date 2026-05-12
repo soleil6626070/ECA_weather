@@ -1,0 +1,27 @@
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# venv
+.venv/
+venv/
+env/
+
+# jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# env
+.env
+
+# Trained model artefacts (keep the directory via .gitkeep)
+models/*.joblib
+
+# OS junk
+.DS_Store
+Thumbs.db
