@@ -19,6 +19,10 @@ def RFR_score(X, y):
                                   y,
                                   cv=5,
                                   scoring='neg_mean_absolute_error')
+    # Data leak here. cv=5 defaults to KFold, this gives continuous
+    # random folds, meaning that the model can train on data from 
+    # the future to predict the past. big problem.
+
     mae = scores.mean()
 
     # Getting feature importance
@@ -31,6 +35,7 @@ def RFR_score(X, y):
 # XGBoost Regressor Function
 def XGB_score(X, y):
     X_train, X_valid, y_train, y_valid = train_test_split(X, y, random_state=0)
+    # Same data leak problem happens here
     xgbr_model = XGBRegressor(random_state=0,
                               n_estimators=1000,
                               early_stopping_rounds=5,
