@@ -17,8 +17,8 @@ def load_raw(path=DEFAULT_CSV):
 
 
 # Snow depth imputing
-# I could impute missing values of snow_depth to zero in spring, summer and autumn
-# and replace NaN with the previous days value in winter.
+# Decision made to impute missing values of snow_depth to zero in spring, summer
+# and autumn and replace NaN with the previous days value in winter.
 def clean(df):
     # remove rows with missing target
     df = df.dropna(axis=0, subset=['sunshine']).copy()
