@@ -23,6 +23,11 @@ def clean(df):
     # remove rows with missing target
     df = df.dropna(axis=0, subset=['sunshine']).copy()
 
+    # remove rows with global radiation sensor failure
+    sens_fail = (df['sunshine'] >= 9) & (df['global_radiation'] < 70)
+    df = df.loc[~sens_fail].copy()
+
+    # prepare winter mask
     month = df.date.dt.month
     day = df.date.dt.day
 
