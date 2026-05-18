@@ -25,3 +25,6 @@ models/*.joblib
 # OS junk
 .DS_Store
 Thumbs.db
+
+# legacy
+legacy/
