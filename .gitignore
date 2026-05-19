@@ -14,6 +14,7 @@ env/
 
 # IDE
 .vscode/
+.claude/
 .idea/
 
 # env
@@ -26,5 +27,7 @@ models/*.joblib
 .DS_Store
 Thumbs.db
 
-# legacy
+# unused
 legacy/
+models/
+notebooks/03_modelling.ipynb
