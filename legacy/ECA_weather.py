@@ -36,19 +36,19 @@ from sklearn.metrics import mean_absolute_error
 from xgboost import XGBRegressor
 
 # data: https://www.ecad.eu/dailydata/predefinedseries.php#
-file = 'C://Users//aidan//Documents//Physics//VScode//weather//ECA_london_weather_heathrow.csv'
+file = 'data/ECA_london_weather_heathrow.csv'
 df = pd.read_csv(file)
 X = df.copy()
 
 # Pre-processing ------------------------------------------------------------------------
 
-#print(X.info())
+print(X.info())
 # 'date' is int, everything else is float
 
-#print(X.isnull().sum())
+print(X.isnull().sum())
 # a little less than 10% of the snow_depth data is missing
 
-#print((X['snow_depth']==0).sum())
+print((X['snow_depth']==0).sum())
 # little less than 90% of the time, it doesnt snow
 
 # I could impute missing values of snow_depth to zero in spirng, summer and autmumn
@@ -80,6 +80,9 @@ X.drop(columns=['date_parsed'], inplace=True)
 # Imputer -------------------------------------------------------------------------------
 impute = SimpleImputer(strategy='mean')
 X2 = pd.DataFrame(impute.fit_transform(X), columns=X.columns)
+# Data leakage here. missing values from 1980s are being mean imputed 
+# with the mean that uses future data. big problem.
+
 #print(X2.head())
 #print(X2.isnull().sum())
 
@@ -433,6 +436,10 @@ def RFR_score(X, y):
                                   y,
                                   cv=5,
                                   scoring='neg_mean_absolute_error')
+    # Data leak here. cv=5 defaults to KFold, this gives continuous
+    # random folds, meaning that the model can train on data from 
+    # the future to predict the past. big problem.
+
     mae = scores.mean()
 
     # Getting feature importance
@@ -444,6 +451,7 @@ def RFR_score(X, y):
 # XGBoost Regressor Function
 def XGB_score(X,y):
     X_train, X_valid, y_train, y_valid = train_test_split(X, y, random_state=0)
+    # same data leak problem happens here
     xgbr_model = XGBRegressor(random_state=0,
                               n_estimators=1000,
                               early_stopping_rounds=5,
