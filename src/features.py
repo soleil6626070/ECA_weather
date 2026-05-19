@@ -23,7 +23,7 @@ def get_season(date):
 
 # Create Lag Features
 def add_lag_features(X, y):
-    # Use the previous days' sunshine to predict current sunshine
+    # Use the previous days sunshine to predict current sunshine
     X = X.copy()
     X['sunshine_lag_1'] = y.shift(1)
     X['sunshine_lag_2'] = y.shift(2)
@@ -59,10 +59,10 @@ def add_season(X):
 def add_seasonal_interactions(X, features):
     # start from X.copy() not pd.DataFrame(): we want X augmented with the
     # interaction columns, not replaced by only the interaction columns
-    X4 = X.copy()
+    X_new = X.copy()
     for feature in features:
-        X4[f'{feature}_winter'] = X[feature] * X['Winter']
-        X4[f'{feature}_spring'] = X[feature] * X['Spring']
-        X4[f'{feature}_summer'] = X[feature] * X['Summer']
-        X4[f'{feature}_autumn'] = X[feature] * X['Autumn']
-    return X4
+        X_new[f'{feature}_winter'] = X[feature] * X['Winter']
+        X_new[f'{feature}_spring'] = X[feature] * X['Spring']
+        X_new[f'{feature}_summer'] = X[feature] * X['Summer']
+        X_new[f'{feature}_autumn'] = X[feature] * X['Autumn']
+    return X_new
