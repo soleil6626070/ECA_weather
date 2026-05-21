@@ -1,8 +1,7 @@
 """Model evaluation helpers.
 
 RFR_score and XGB_score are the original functions from the legacy first attempt.
-They contain the temporal leakage bugs. These are to be fixed with cv_score
-with TimeSeriesSplit. Keeping them to compare with fix.
+Keeping them to compare with fix.
 """
 
 from sklearn.model_selection import cross_val_score, train_test_split, TimeSeriesSplit
