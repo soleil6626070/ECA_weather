@@ -20,9 +20,6 @@ env/
 # env
 .env
 
-# Trained model artefacts (keep the directory via .gitkeep)
-models/*.joblib
-
 # OS junk
 .DS_Store
 Thumbs.db
