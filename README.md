@@ -28,18 +28,11 @@ Permission to use the data is granted provided the following is acknowledged:
 ## Layout
 
 ```
-data/      raw ECA&D CSV
-src/
-  data.py        data cleaning module
-  features.py    season labelling, lag features, one hot seasons, seasonal
-                 interaction terms
-  models.py      cv_score w/ TimeSeriesSplit & leaky non tss scoring
-  plots.py       
-notebooks/
-  01_eda.ipynb        Exploratory Data Analysis - dataset overview, cleaning decisions, feature scouting
-  02_modelling.ipynb  Models - baselines, leakage study, feature sweep, KMeans, final eval
-  figures/            generated PNGs
-requirements.txt
+data/            ECA&D CSV
+src/             modules
+notebooks/       EDA and Modelling notebooks
+    figures/     output figures
+requirements.txt pinned dependencies
 ```
 
 ## Setup
