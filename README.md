@@ -8,7 +8,7 @@ Random Forest and XGBoost regressors were compared on the multiple different fea
 
 ![CV MAE by feature configuration](notebooks/figures/model_comparison.png)
 
-The best model was then taken further and evaluated on how it would perform in production, training it on pre 2019 data and scoring it on the final two years of the dataset, 2019 and 2020 data. This produced a hold out gap of 0.746 -> 1.147 hrs MAE.
+The best model was then taken further and evaluated on how it would perform in production, training it on pre 2019 data and scoring it on the final two years of the dataset, 2019 and 2020 data. The gradient boosting model was able to predict the same day sunshine with 1.147 ± 0.046 hrs (68.8 ± 2.7 minutes). This showed a hold out gap of 0.401 hrs (24.0 minutes)
 
 ![Predicted vs actual sunshine on 2019 onwards](notebooks/figures/pred_vs_actual.png)
 
